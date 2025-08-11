@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Phone Availability Control</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #f5f5f5;
+        padding: 20px;
+    }
+    h1 {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    .phone {
+        display: flex;
+        align-items: center;
+        background: white;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-radius: 8px;
+        box-shadow: 0 0 5px rgba(0,0,0,0.1);
+        justify-content: space-between;
+    }
+    .phone-name {
+        font-weight: bold;
+        font-size: 18px;
+        flex: 1;
+    }
+    .btn-group {
+        display: flex;
+        gap: 10px;
+    }
+    .light-btn {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        border: none;
+        cursor: pointer;
+    }
+    .green { background-color: green; }
+    .red { background-color: red; cursor: not-allowed; }
+    .countdown {
+        font-size: 12px;
+        text-align: center;
+        margin-top: 3px;
+        height: 15px;
+    }
+</style>
+</head>
+<body>
+
+<h1>Phone Availability Control</h1>
+
+<div id="phones-container"></div>
+
+<script>
+const phones = [
+    "SAMSUNG GRAND",
+    "Redmi 5",
+    "infinix",
+    "Hornor7c",
+    "samsung galaxy a06"
+];
+
+const BUTTON_DURATION = 24 * 60 * 60 * 1000; // 24h
+const LOCK_OTHERS_DURATION = 2 * 60 * 60 * 1000; // 2h
+const NEXT_BTN_DELAY = 4 * 60 * 60 * 1000; // 4h
+
+let buttonState = JSON.parse(localStorage.getItem("buttonState") || "{}");
+let lockOthersInfo = JSON.parse(localStorage.getItem("lockOthersInfo") || "{}");
+
+function saveState() {
+    localStorage.setItem("buttonState", JSON.stringify(buttonState));
+    localStorage.setItem("lockOthersInfo", JSON.stringify(lockOthersInfo));
+}
+
+function renderPhones() {
+    const container = document.getElementById("phones-container");
+    container.innerHTML = "";
+    const now = Date.now();
+
+    phones.forEach(phone => {
+        const phoneDiv = document.createElement("div");
+        phoneDiv.className = "phone";
+
+        const name = document.createElement("div");
+        name.className = "phone-name";
+        name.innerText = phone;
+        phoneDiv.appendChild(name);
+
+        const btnGroup = document.createElement("div");
+        btnGroup.className = "btn-group";
+
+        for (let i = 1; i <= 3; i++) {
+            const btnWrapper = document.createElement("div");
+            btnWrapper.style.textAlign = "center";
+
+            const btn = document.createElement("button");
+            btn.className = "light-btn";
+
+            const key = `${phone}-btn${i}`;
+            const state = buttonState[key] || { endTime: 0, clickedAt: 0 };
+            let isRed = now < state.endTime;
+            let disabled = isRed;
+            let lockUntilTime = 0;
+
+            // Global lock from another phone's first button
+            if (lockOthersInfo.lockUntil && now < lockOthersInfo.lockUntil) {
+                // Lock applies to ALL buttons of ALL phones except:
+                // - The phone that triggered it
+                if (lockOthersInfo.lockedBy !== phone) {
+                    disabled = true;
+                    lockUntilTime = Math.max(lockUntilTime, lockOthersInfo.lockUntil);
+                }
+            }
+
+            // Same phone rules: 4h delay between sequential buttons
+            if (i === 2) {
+                const btn1State = buttonState[`${phone}-btn1`] || { clickedAt: 0 };
+                const waitUntil = btn1State.clickedAt + NEXT_BTN_DELAY;
+                if (now < waitUntil) {
+                    disabled = true;
+                    lockUntilTime = Math.max(lockUntilTime, waitUntil);
+                }
+            }
+            if (i === 3) {
+                const btn1State = buttonState[`${phone}-btn1`] || { clickedAt: 0 };
+                const btn2State = buttonState[`${phone}-btn2`] || { clickedAt: 0 };
+
+                const waitAfterBtn1 = btn1State.clickedAt + NEXT_BTN_DELAY;
+                const waitAfterBtn2 = btn2State.clickedAt + NEXT_BTN_DELAY;
+
+                const maxWait = Math.max(waitAfterBtn1, waitAfterBtn2);
+                if (now < maxWait) {
+                    disabled = true;
+                    lockUntilTime = Math.max(lockUntilTime, maxWait);
+                }
+            }
+
+            // 24h red lock overrides all
+            if (isRed) {
+                lockUntilTime = Math.max(lockUntilTime, state.endTime);
+            }
+
+            btn.classList.add(isRed ? "red" : "green");
+            btn.disabled = disabled;
+
+            btn.addEventListener("click", () => {
+                if (btn.disabled) return;
+                const clickTime = Date.now();
+                buttonState[key] = {
+                    endTime: clickTime + BUTTON_DURATION,
+                    clickedAt: clickTime
+                };
+
+                // If first button clicked: lock all other phones for 2h
+                if (i === 1) {
+                    lockOthersInfo = {
+                        lockUntil: clickTime + LOCK_OTHERS_DURATION,
+                        lockedBy: phone
+                    };
+                }
+
+                saveState();
+                renderPhones();
+            });
+
+            btnWrapper.appendChild(btn);
+
+            const countdownDiv = document.createElement("div");
+            countdownDiv.className = "countdown";
+            if (lockUntilTime > now) {
+                countdownDiv.innerText = formatCountdown(lockUntilTime - now);
+            } else {
+                countdownDiv.innerText = "";
+            }
+            btnWrapper.appendChild(countdownDiv);
+
+            btnGroup.appendChild(btnWrapper);
+        }
+
+        phoneDiv.appendChild(btnGroup);
+        container.appendChild(phoneDiv);
+    });
+}
+
+function formatCountdown(ms) {
+    const totalSeconds = Math.floor(ms / 1000);
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = totalSeconds % 60;
+    return `${h}h ${m}m ${s}s`;
+}
+
+setInterval(renderPhones, 1000);
+renderPhones();
+</script>
+
+</body>
+</html>

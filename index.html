@@ -5,61 +5,26 @@
 <title>Phone Availability Control</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-    body {
-        font-family: Arial, sans-serif;
-        background: #f5f5f5;
-        padding: 10px;
-    }
-    h1 {
-        text-align: center;
-        margin-bottom: 20px;
-    }
+    body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 10px; }
+    h1 { text-align: center; margin-bottom: 20px; }
     .phone {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        background: white;
-        padding: 10px;
-        margin-bottom: 10px;
-        border-radius: 8px;
-        box-shadow: 0 0 5px rgba(0,0,0,0.1);
+        display: flex; flex-wrap: wrap; align-items: center;
+        background: white; padding: 10px; margin-bottom: 10px;
+        border-radius: 8px; box-shadow: 0 0 5px rgba(0,0,0,0.1);
     }
-    .phone-name {
-        font-weight: bold;
-        font-size: 16px;
-        flex: 1 1 100%;
-    }
-    .btn-group {
-        display: flex;
-        gap: 8px;
-        margin-top: 8px;
-    }
+    .phone-name { font-weight: bold; font-size: 16px; flex: 1 1 100%; }
+    .btn-group { display: flex; gap: 8px; margin-top: 8px; }
     .light-btn {
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        border: none;
-        cursor: pointer;
-        flex-shrink: 0;
+        width: 30px; height: 30px; border-radius: 50%;
+        border: none; cursor: pointer; flex-shrink: 0;
     }
     .green { background-color: green; }
     .red { background-color: red; cursor: not-allowed; }
-    .countdown {
-        font-size: 12px;
-        text-align: center;
-        height: 15px;
-        margin-top: 2px;
-    }
+    .countdown { font-size: 12px; text-align: center; height: 15px; margin-top: 2px; }
     .reset-btn {
-        display: block;
-        margin: 15px auto;
-        padding: 10px 20px;
-        font-size: 16px;
-        background: red;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
+        display: block; margin: 15px auto; padding: 10px 20px;
+        font-size: 16px; background: red; color: white;
+        border: none; border-radius: 5px; cursor: pointer;
     }
 </style>
 </head>
@@ -80,7 +45,6 @@ let saudiOffset = 0;
 let buttonState = {};
 let globalLock = { until: 0, by: null };
 
-// Fetch Saudi Arabia time offset
 async function fetchSaudiTimeOffset() {
     let res = await fetch("https://worldtimeapi.org/api/timezone/Asia/Riyadh");
     let data = await res.json();
@@ -89,7 +53,6 @@ async function fetchSaudiTimeOffset() {
     saudiOffset = ksa - utc;
 }
 
-// Get current Saudi Arabia time
 function nowKSA() {
     return Date.now() + saudiOffset;
 }
@@ -132,7 +95,22 @@ function renderPhones() {
             let disabled = false;
             let lockUntil = 0;
 
-            // Check if in red state (24h busy)
+            // Sequential rule
+            if (i > 1) {
+                let prevKey = `${phone}-btn${i - 1}`;
+                let prevState = buttonState[prevKey] || { clickedAt: 0, endTime: 0 };
+                if (prevState.clickedAt === 0) {
+                    // Previous button has never been clicked
+                    disabled = true;
+                    btn.classList.add("red");
+                    wrapper.appendChild(btn);
+                    wrapper.appendChild(document.createElement("div"));
+                    btnGroup.appendChild(wrapper);
+                    continue;
+                }
+            }
+
+            // Red if still in countdown
             if (now < state.endTime) {
                 disabled = true;
                 lockUntil = state.endTime;
@@ -141,7 +119,7 @@ function renderPhones() {
                 btn.classList.add("green");
             }
 
-            // Global 2h lock for other phones if first button clicked
+            // Lock other phones for 2h if a first button clicked
             if (globalLock.until > now && globalLock.by !== phone) {
                 disabled = true;
                 lockUntil = Math.max(lockUntil, globalLock.until);
@@ -149,11 +127,11 @@ function renderPhones() {
                 btn.classList.add("red");
             }
 
-            // 4h rule within same phone
+            // 4h wait rule inside same phone
             if (i === 2) {
                 let btn1 = buttonState[`${phone}-btn1`] || { clickedAt: 0 };
                 let waitUntil = btn1.clickedAt + NEXT_BTN_DELAY;
-                if (now < waitUntil) {
+                if (btn1.clickedAt && now < waitUntil) {
                     disabled = true;
                     lockUntil = Math.max(lockUntil, waitUntil);
                     btn.classList.remove("green");
@@ -161,10 +139,9 @@ function renderPhones() {
                 }
             }
             if (i === 3) {
-                let btn1 = buttonState[`${phone}-btn1`] || { clickedAt: 0 };
                 let btn2 = buttonState[`${phone}-btn2`] || { clickedAt: 0 };
-                let waitUntil = Math.max(btn1.clickedAt + NEXT_BTN_DELAY, btn2.clickedAt + NEXT_BTN_DELAY);
-                if (now < waitUntil) {
+                let waitUntil = btn2.clickedAt + NEXT_BTN_DELAY;
+                if (btn2.clickedAt && now < waitUntil) {
                     disabled = true;
                     lockUntil = Math.max(lockUntil, waitUntil);
                     btn.classList.remove("green");
@@ -178,7 +155,6 @@ function renderPhones() {
                 if (btn.disabled) return;
                 let clickTime = nowKSA();
                 buttonState[key] = { endTime: clickTime + BUTTON_DURATION, clickedAt: clickTime };
-
                 if (i === 1) {
                     globalLock = { until: clickTime + LOCK_OTHERS_DURATION, by: phone };
                 }
@@ -208,14 +184,12 @@ function resetAll() {
     }
 }
 
-// Clock updater
 setInterval(() => {
     document.getElementById("ksa-time").innerText =
         "Saudi Arabia Time: " + new Date(nowKSA()).toLocaleTimeString("en-SA", { hour12: false });
     renderPhones();
 }, 1000);
 
-// Init
 (async () => {
     await fetchSaudiTimeOffset();
     renderPhones();

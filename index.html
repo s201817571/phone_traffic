@@ -6,461 +6,504 @@
     <title>Phone Availability Control</title>
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: #333;
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
         }
-
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-
-        h1 {
-            text-align: center;
-            color: #4a5568;
-            margin-bottom: 30px;
-            font-size: 2.5em;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
         .phone-section {
-            margin-bottom: 40px;
-            padding: 25px;
-            background: #f8f9fa;
-            border-radius: 15px;
-            border-left: 5px solid #667eea;
-        }
-
-        .phone-title {
-            font-size: 1.5em;
-            font-weight: bold;
-            margin-bottom: 20px;
-            color: #2d3748;
-        }
-
-        .button-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-        }
-
-        .phone-button {
-            padding: 15px 20px;
-            font-size: 16px;
-            font-weight: 600;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .phone-button.available {
-            background: linear-gradient(135deg, #48bb78, #38a169);
-            color: white;
-        }
-
-        .phone-button.locked {
-            background: linear-gradient(135deg, #e53e3e, #c53030);
-            color: white;
-            cursor: not-allowed;
-        }
-
-        .phone-button.global-locked {
-            background: linear-gradient(135deg, #ed8936, #dd6b20);
-            color: white;
-            cursor: not-allowed;
-        }
-
-        .countdown {
-            font-size: 14px;
-            margin-top: 5px;
-            font-weight: normal;
-        }
-
-        .status-bar {
-            background: #2d3748;
-            color: white;
-            padding: 15px;
-            border-radius: 10px;
             margin-bottom: 30px;
-            text-align: center;
+            padding: 20px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background-color: #fafafa;
         }
-
-        .loading {
-            text-align: center;
-            padding: 50px;
-            font-size: 18px;
+        .phone-section.locked {
+            background-color: #ffe6e6;
+            border-color: #ff9999;
+        }
+        .phone-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .button-container {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .phone-button {
+            padding: 12px 24px;
+            font-size: 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            min-width: 120px;
+            transition: all 0.3s ease;
+        }
+        .phone-button.available {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .phone-button.available:hover {
+            background-color: #45a049;
+        }
+        .phone-button.clicked {
+            background-color: #2196F3;
+            color: white;
+        }
+        .phone-button.disabled {
+            background-color: #cccccc;
+            color: #666666;
+            cursor: not-allowed;
+        }
+        .timer-display {
+            margin-top: 10px;
+            font-weight: bold;
             color: #666;
         }
-
-        .error {
-            background: #fed7d7;
-            color: #c53030;
+        .global-lock-display {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
             padding: 15px;
-            border-radius: 10px;
+            border-radius: 6px;
             margin-bottom: 20px;
             text-align: center;
+            font-weight: bold;
+            color: #856404;
+        }
+        .controls {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #e9ecef;
+            border-radius: 6px;
+        }
+        .control-button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .reset-button {
+            background-color: #dc3545;
+            color: white;
+        }
+        .export-button {
+            background-color: #28a745;
+            color: white;
+        }
+        .import-button {
+            background-color: #007bff;
+            color: white;
+        }
+        .file-input {
+            margin: 5px;
+        }
+        .status-message {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .status-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>📱 Phone Availability Control System</h1>
+        <h1>Phone Availability Control System</h1>
         
-        <div id="loading" class="loading">
-            Loading timer data...
+        <div class="controls">
+            <button class="control-button reset-button" onclick="resetAll()">Reset All</button>
+            <button class="control-button export-button" onclick="exportData()">Export JSON</button>
+            <input type="file" id="importFile" class="file-input" accept=".json" onchange="importData(event)">
+            <button class="control-button import-button" onclick="document.getElementById('importFile').click()">Import JSON</button>
+            <div id="statusMessage"></div>
         </div>
 
-        <div id="error" class="error" style="display: none;">
-            Failed to load data. Please check your internet connection.
-        </div>
+        <div id="globalLockDisplay" class="global-lock-display" style="display: none;"></div>
 
-        <div id="status" class="status-bar" style="display: none;">
-            <div id="current-time"></div>
-            <div id="global-status"></div>
-        </div>
-
-        <div id="phones-container" style="display: none;">
-            <!-- Phone sections will be generated here -->
-        </div>
+        <div id="phoneContainer"></div>
     </div>
 
     <script>
-        const SUPABASE_CONFIG = {
-            url: 'https://ixqjqjqjqjqjqjqjqjqj.supabase.co', // Your actual Supabase project URL
-            anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...', // Your actual Supabase anon key
-        };
-
-        // Phone configuration - updated to match original names
+        // Phone configuration
         const phones = [
-            'SAMSUNG GRAND', 'Redmi 5', 'infinix', 'Hornor7c', 'samsung galaxy a06'
+            { id: 'phone1', name: 'Phone 1', buttons: ['Button A', 'Button B', 'Button C'] },
+            { id: 'phone2', name: 'Phone 2', buttons: ['Button A', 'Button B', 'Button C'] },
+            { id: 'phone3', name: 'Phone 3', buttons: ['Button A', 'Button B', 'Button C'] },
+            { id: 'phone4', name: 'Phone 4', buttons: ['Button A', 'Button B', 'Button C'] },
+            { id: 'phone5', name: 'Phone 5', buttons: ['Button A', 'Button B', 'Button C'] }
         ];
 
-        const BUTTON_DURATION = 24 * 60 * 60 * 1000; // 24h
-        const LOCK_OTHERS_DURATION = 2 * 60 * 60 * 1000; // 2h
-        const NEXT_BTN_DELAY = 4 * 60 * 60 * 1000; // 4h
-
-        let saudiOffset = 0;
+        // State management
         let buttonState = {};
-        let globalLock = { until: 0, by: null };
+        let globalLock = { active: false, endTime: null, lockedPhones: [] };
 
-        async function saveButtonState(phoneName, buttonNumber, endTime, clickedAt) {
-            try {
-                const response = await fetch(`${SUPABASE_CONFIG.url}/rest/v1/phone_states`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'apikey': SUPABASE_CONFIG.anonKey,
-                        'Authorization': `Bearer ${SUPABASE_CONFIG.anonKey}`,
-                        'Prefer': 'resolution=merge-duplicates'
-                    },
-                    body: JSON.stringify({
-                        phone_name: phoneName,
-                        button_number: buttonNumber,
-                        end_time: endTime,
-                        clicked_at: clickedAt,
-                        updated_at: new Date().toISOString()
-                    })
-                });
-                
-                if (!response.ok) {
-                    throw new Error('Failed to save button state');
-                }
-            } catch (error) {
-                console.error('Error saving button state:', error);
-                throw error;
-            }
-        }
-
-        async function saveGlobalLock(untilTime, lockedBy) {
-            try {
-                const response = await fetch(`${SUPABASE_CONFIG.url}/rest/v1/global_lock?id=eq.1`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'apikey': SUPABASE_CONFIG.anonKey,
-                        'Authorization': `Bearer ${SUPABASE_CONFIG.anonKey}`
-                    },
-                    body: JSON.stringify({
-                        until_time: untilTime,
-                        locked_by: lockedBy,
-                        updated_at: new Date().toISOString()
-                    })
-                });
-                
-                if (!response.ok) {
-                    throw new Error('Failed to save global lock');
-                }
-            } catch (error) {
-                console.error('Error saving global lock:', error);
-                throw error;
-            }
-        }
-
-        async function loadFromDatabase() {
-            try {
-                // Load button states
-                const buttonResponse = await fetch(`${SUPABASE_CONFIG.url}/rest/v1/phone_states`, {
-                    headers: {
-                        'apikey': SUPABASE_CONFIG.anonKey,
-                        'Authorization': `Bearer ${SUPABASE_CONFIG.anonKey}`
-                    }
-                });
-                
-                if (buttonResponse.ok) {
-                    const buttonData = await buttonResponse.json();
-                    buttonState = {};
-                    buttonData.forEach(row => {
-                        const key = `${row.phone_name}-btn${row.button_number}`;
-                        buttonState[key] = {
-                            endTime: row.end_time,
-                            clickedAt: row.clicked_at
-                        };
-                    });
-                }
-
-                // Load global lock
-                const lockResponse = await fetch(`${SUPABASE_CONFIG.url}/rest/v1/global_lock?id=eq.1`, {
-                    headers: {
-                        'apikey': SUPABASE_CONFIG.anonKey,
-                        'Authorization': `Bearer ${SUPABASE_CONFIG.anonKey}`
-                    }
-                });
-                
-                if (lockResponse.ok) {
-                    const lockData = await lockResponse.json();
-                    if (lockData.length > 0) {
-                        globalLock = {
-                            until: lockData[0].until_time,
-                            by: lockData[0].locked_by
-                        };
-                    }
-                }
-                
-            } catch (error) {
-                console.error('Error loading from database:', error);
-                // Continue with empty state if loading fails
-                buttonState = {};
-                globalLock = { until: 0, by: null };
-            }
-        }
-
-        async function fetchSaudiTimeOffset() {
-            try {
-                const res = await fetch("https://worldtimeapi.org/api/timezone/Asia/Riyadh");
-                const data = await res.json();
-                const utc = new Date(data.utc_datetime).getTime();
-                const ksa = new Date(data.datetime).getTime();
-                saudiOffset = ksa - utc;
-            } catch (error) {
-                console.error('Failed to fetch Saudi time:', error);
-                saudiOffset = 0;
-            }
-        }
-
-        function nowKSA() {
-            return Date.now() + saudiOffset;
-        }
-
-        function formatCountdown(ms) {
-            const totalSeconds = Math.floor(ms / 1000);
-            const h = Math.floor(totalSeconds / 3600);
-            const m = Math.floor((totalSeconds % 3600) / 60);
-            const s = totalSeconds % 60;
-            return `${h}h ${m}m ${s}s`;
-        }
-
-        function renderPhones() {
-            const container = document.getElementById('phones-container');
-            container.innerHTML = "";
-            let now = nowKSA();
-
+        // Initialize button states
+        function initializeStates() {
             phones.forEach(phone => {
-                const phoneDiv = document.createElement("div");
-                phoneDiv.className = "phone-section";
+                buttonState[phone.id] = {
+                    clickedButtons: [],
+                    buttonTimers: {},
+                    lastClickTime: null
+                };
+            });
+        }
 
-                const nameDiv = document.createElement("div");
-                nameDiv.className = "phone-title";
-                nameDiv.innerText = phone;
-                phoneDiv.appendChild(nameDiv);
+        // Saudi Arabia timezone offset calculation
+        function getSaudiTime() {
+            const now = new Date();
+            const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+            const saudiTime = new Date(utc + (3 * 3600000)); // UTC+3
+            return saudiTime;
+        }
 
-                const btnGroup = document.createElement("div");
-                btnGroup.className = "button-grid";
+        // Save data to localStorage
+        function saveToLocalStorage() {
+            const data = {
+                buttonState: buttonState,
+                globalLock: globalLock,
+                timestamp: getSaudiTime().toISOString()
+            };
+            try {
+                localStorage.setItem('phoneTimerData', JSON.stringify(data));
+                showStatus('Data saved successfully', 'success');
+            } catch (error) {
+                showStatus('Error saving data: ' + error.message, 'error');
+            }
+        }
 
-                for (let i = 1; i <= 3; i++) {
-                    const wrapper = document.createElement("div");
-                    wrapper.style.textAlign = "center";
-
-                    const btn = document.createElement("button");
-                    btn.className = "phone-button";
-
-                    const key = `${phone}-btn${i}`;
-                    const state = buttonState[key] || { endTime: 0, clickedAt: 0 };
-
-                    let disabled = false;
-                    let lockUntil = 0;
-
-                    // Sequential rule
-                    if (i > 1) {
-                        let prevKey = `${phone}-btn${i - 1}`;
-                        let prevState = buttonState[prevKey] || { clickedAt: 0, endTime: 0 };
-                        if (prevState.clickedAt === 0) {
-                            disabled = true;
-                            btn.classList.add("locked");
-                            btn.innerHTML = `<div>Button ${i}</div><div class="countdown">Locked</div>`;
-                            wrapper.appendChild(btn);
-                            btnGroup.appendChild(wrapper);
-                            continue;
+        // Load data from localStorage
+        function loadFromLocalStorage() {
+            try {
+                const savedData = localStorage.getItem('phoneTimerData');
+                if (savedData) {
+                    const data = JSON.parse(savedData);
+                    buttonState = data.buttonState || {};
+                    globalLock = data.globalLock || { active: false, endTime: null, lockedPhones: [] };
+                    
+                    // Ensure all phones have state
+                    phones.forEach(phone => {
+                        if (!buttonState[phone.id]) {
+                            buttonState[phone.id] = {
+                                clickedButtons: [],
+                                buttonTimers: {},
+                                lastClickTime: null
+                            };
                         }
-                    }
-
-                    // Red if still in countdown
-                    if (now < state.endTime) {
-                        disabled = true;
-                        lockUntil = state.endTime;
-                        btn.classList.add("locked");
-                    } else {
-                        btn.classList.add("available");
-                    }
-
-                    // Lock other phones for 2h if a first button clicked
-                    if (globalLock.until > now && globalLock.by !== phone) {
-                        disabled = true;
-                        lockUntil = Math.max(lockUntil, globalLock.until);
-                        btn.classList.remove("available");
-                        btn.classList.add("global-locked");
-                    }
-
-                    // 4h wait rule inside same phone
-                    if (i === 2) {
-                        let btn1 = buttonState[`${phone}-btn1`] || { clickedAt: 0 };
-                        let waitUntil = btn1.clickedAt + NEXT_BTN_DELAY;
-                        if (btn1.clickedAt && now < waitUntil) {
-                            disabled = true;
-                            lockUntil = Math.max(lockUntil, waitUntil);
-                            btn.classList.remove("available");
-                            btn.classList.add("locked");
-                        }
-                    }
-                    if (i === 3) {
-                        let btn2 = buttonState[`${phone}-btn2`] || { clickedAt: 0 };
-                        let waitUntil = btn2.clickedAt + NEXT_BTN_DELAY;
-                        if (btn2.clickedAt && now < waitUntil) {
-                            disabled = true;
-                            lockUntil = Math.max(lockUntil, waitUntil);
-                            btn.classList.remove("available");
-                            btn.classList.add("locked");
-                        }
-                    }
-
-                    btn.disabled = disabled;
-
-                    btn.addEventListener("click", async () => {
-                        if (btn.disabled) return;
-                        let clickTime = nowKSA();
-                        buttonState[key] = { endTime: clickTime + BUTTON_DURATION, clickedAt: clickTime };
-                        
-                        try {
-                            await saveButtonState(phone, i, clickTime + BUTTON_DURATION, clickTime);
-                            
-                            if (i === 1) {
-                                globalLock = { until: clickTime + LOCK_OTHERS_DURATION, by: phone };
-                                await saveGlobalLock(clickTime + LOCK_OTHERS_DURATION, phone);
-                            }
-                        } catch (error) {
-                            console.error('Failed to save to database:', error);
-                        }
-                        
-                        renderPhones();
                     });
-
-                    const countdownText = (lockUntil > now) ? formatCountdown(lockUntil - now) : "";
-                    btn.innerHTML = `<div>Button ${i}</div><div class="countdown">${countdownText}</div>`;
-
-                    wrapper.appendChild(btn);
-                    btnGroup.appendChild(wrapper);
+                    
+                    showStatus(`Data loaded from ${data.timestamp || 'unknown time'}`, 'success');
+                    return true;
                 }
+            } catch (error) {
+                showStatus('Error loading data: ' + error.message, 'error');
+            }
+            return false;
+        }
 
-                phoneDiv.appendChild(btnGroup);
+        // Export data as JSON file
+        function exportData() {
+            const data = {
+                buttonState: buttonState,
+                globalLock: globalLock,
+                exportTime: getSaudiTime().toISOString()
+            };
+            
+            const dataStr = JSON.stringify(data, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = `phone-timer-data-${getSaudiTime().toISOString().slice(0, 19).replace(/:/g, '-')}.json`;
+            link.click();
+            
+            showStatus('Data exported successfully', 'success');
+        }
+
+        // Import data from JSON file
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    if (data.buttonState && data.globalLock) {
+                        buttonState = data.buttonState;
+                        globalLock = data.globalLock;
+                        
+                        // Ensure all phones have state
+                        phones.forEach(phone => {
+                            if (!buttonState[phone.id]) {
+                                buttonState[phone.id] = {
+                                    clickedButtons: [],
+                                    buttonTimers: {},
+                                    lastClickTime: null
+                                };
+                            }
+                        });
+                        
+                        saveToLocalStorage();
+                        updateDisplay();
+                        showStatus(`Data imported from ${data.exportTime || 'unknown time'}`, 'success');
+                    } else {
+                        showStatus('Invalid JSON file format', 'error');
+                    }
+                } catch (error) {
+                    showStatus('Error importing data: ' + error.message, 'error');
+                }
+            };
+            reader.readAsText(file);
+            
+            // Reset file input
+            event.target.value = '';
+        }
+
+        // Show status message
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.textContent = message;
+            statusDiv.className = `status-message status-${type}`;
+            statusDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        // Format time remaining
+        function formatTimeRemaining(endTime) {
+            const now = getSaudiTime();
+            const remaining = endTime - now;
+            
+            if (remaining <= 0) return null;
+            
+            const hours = Math.floor(remaining / (1000 * 60 * 60));
+            const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
+            
+            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // Check if button is available
+        function isButtonAvailable(phoneId, buttonIndex) {
+            const phone = buttonState[phoneId];
+            const now = getSaudiTime();
+            
+            // Check if phone is globally locked
+            if (globalLock.active && globalLock.lockedPhones.includes(phoneId)) {
+                if (now < new Date(globalLock.endTime)) {
+                    return false;
+                }
+            }
+            
+            // Check if button is in cooldown or waiting to unlock
+            if (phone.buttonTimers[buttonIndex]) {
+                if (now < new Date(phone.buttonTimers[buttonIndex])) {
+                    return false;
+                }
+            }
+            
+            // Check sequential requirement (must click buttons in order)
+            if (buttonIndex > 0 && !phone.clickedButtons.includes(buttonIndex - 1)) {
+                return false;
+            }
+            
+            return true;
+        }
+
+        // Handle button click
+        function handleButtonClick(phoneId, buttonIndex) {
+            if (!isButtonAvailable(phoneId, buttonIndex)) return;
+            
+            const now = getSaudiTime();
+            const phone = buttonState[phoneId];
+            
+            // Mark button as clicked
+            if (!phone.clickedButtons.includes(buttonIndex)) {
+                phone.clickedButtons.push(buttonIndex);
+            }
+            
+            // Set 24-hour cooldown for the clicked button
+            phone.buttonTimers[buttonIndex] = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+            phone.lastClickTime = now.toISOString();
+            
+            // Set 4-hour unlock timer for the next button in sequence
+            if (buttonIndex === 0) {
+                // Button 1 clicked -> Button 2 unlocks after 4h
+                phone.buttonTimers[1] = new Date(now.getTime() + 4 * 60 * 60 * 1000);
+            } else if (buttonIndex === 1) {
+                // Button 2 clicked -> Button 3 unlocks after 4h
+                phone.buttonTimers[2] = new Date(now.getTime() + 4 * 60 * 60 * 1000);
+            }
+            
+            // If this is the first button of any phone, activate global lock
+            if (buttonIndex === 0) {
+                const otherPhones = phones.filter(p => p.id !== phoneId).map(p => p.id);
+                globalLock = {
+                    active: true,
+                    endTime: new Date(now.getTime() + 2 * 60 * 60 * 1000).toISOString(),
+                    lockedPhones: otherPhones
+                };
+            }
+            
+            saveToLocalStorage();
+            updateDisplay();
+        }
+
+        // Reset all data
+        function resetAll() {
+            if (confirm('Are you sure you want to reset all timers?')) {
+                initializeStates();
+                globalLock = { active: false, endTime: null, lockedPhones: [] };
+                saveToLocalStorage();
+                updateDisplay();
+                showStatus('All timers reset', 'success');
+            }
+        }
+
+        // Create phone UI
+        function createPhoneUI() {
+            const container = document.getElementById('phoneContainer');
+            container.innerHTML = '';
+            
+            phones.forEach(phone => {
+                const phoneDiv = document.createElement('div');
+                phoneDiv.className = 'phone-section';
+                phoneDiv.id = phone.id;
+                
+                const title = document.createElement('div');
+                title.className = 'phone-title';
+                title.textContent = phone.name;
+                phoneDiv.appendChild(title);
+                
+                const buttonContainer = document.createElement('div');
+                buttonContainer.className = 'button-container';
+                
+                phone.buttons.forEach((buttonName, index) => {
+                    const button = document.createElement('button');
+                    button.className = 'phone-button';
+                    button.textContent = buttonName;
+                    button.onclick = () => handleButtonClick(phone.id, index);
+                    button.id = `${phone.id}-button-${index}`;
+                    buttonContainer.appendChild(button);
+                    
+                    const timerDiv = document.createElement('div');
+                    timerDiv.className = 'timer-display';
+                    timerDiv.id = `${phone.id}-timer-${index}`;
+                    buttonContainer.appendChild(timerDiv);
+                });
+                
+                phoneDiv.appendChild(buttonContainer);
                 container.appendChild(phoneDiv);
             });
         }
 
-        async function resetAll() {
-            if (confirm("Are you sure you want to reset all timers?")) {
-                try {
-                    // Clear button states
-                    await fetch(`${SUPABASE_CONFIG.url}/rest/v1/phone_states`, {
-                        method: 'DELETE',
-                        headers: {
-                            'apikey': SUPABASE_CONFIG.anonKey,
-                            'Authorization': `Bearer ${SUPABASE_CONFIG.anonKey}`
-                        }
-                    });
-
-                    // Reset global lock
-                    await saveGlobalLock(0, null);
-
-                    buttonState = {};
-                    globalLock = { until: 0, by: null };
-                    renderPhones();
-                } catch (error) {
-                    console.error('Failed to reset:', error);
-                    alert('Failed to reset. Please try again.');
+        // Update display
+        function updateDisplay() {
+            const now = getSaudiTime();
+            
+            // Update global lock display
+            const globalLockDiv = document.getElementById('globalLockDisplay');
+            if (globalLock.active && now < new Date(globalLock.endTime)) {
+                const remaining = formatTimeRemaining(new Date(globalLock.endTime));
+                if (remaining) {
+                    globalLockDiv.textContent = `Global Lock Active - ${remaining} remaining`;
+                    globalLockDiv.style.display = 'block';
+                } else {
+                    globalLock.active = false;
+                    globalLockDiv.style.display = 'none';
                 }
+            } else {
+                globalLock.active = false;
+                globalLockDiv.style.display = 'none';
             }
+            
+            // Update phone displays
+            phones.forEach(phone => {
+                const phoneDiv = document.getElementById(phone.id);
+                const phoneState = buttonState[phone.id];
+                
+                // Check if phone is locked
+                const isLocked = globalLock.active && globalLock.lockedPhones.includes(phone.id) && now < new Date(globalLock.endTime);
+                phoneDiv.className = isLocked ? 'phone-section locked' : 'phone-section';
+                
+                phone.buttons.forEach((buttonName, index) => {
+                    const button = document.getElementById(`${phone.id}-button-${index}`);
+                    const timerDiv = document.getElementById(`${phone.id}-timer-${index}`);
+                    
+                    const isAvailable = isButtonAvailable(phone.id, index);
+                    const isClicked = phoneState.clickedButtons.includes(index);
+                    
+                    if (isClicked) {
+                        button.className = 'phone-button clicked';
+                        button.disabled = false;
+                    } else if (isAvailable) {
+                        button.className = 'phone-button available';
+                        button.disabled = false;
+                    } else {
+                        button.className = 'phone-button disabled';
+                        button.disabled = true;
+                    }
+                    
+                    // Show timer if button is in cooldown or waiting to unlock
+                    if (phoneState.buttonTimers[index]) {
+                        const remaining = formatTimeRemaining(new Date(phoneState.buttonTimers[index]));
+                        if (remaining) {
+                            // Determine if this is a cooldown (button was clicked) or unlock timer (waiting to become available)
+                            const timerType = isClicked ? 'Cooldown' : 'Unlocks in';
+                            timerDiv.textContent = `${timerType}: ${remaining}`;
+                        } else {
+                            delete phoneState.buttonTimers[index];
+                            timerDiv.textContent = '';
+                        }
+                    } else {
+                        timerDiv.textContent = '';
+                    }
+                });
+            });
         }
 
-        async function initializeApp() {
-            try {
-                document.getElementById('loading').style.display = 'block';
-                document.getElementById('error').style.display = 'none';
-                
-                await fetchSaudiTimeOffset();
-                await loadFromDatabase();
-                
-                renderPhones();
-                
-                // Update time and render every second
-                setInterval(() => {
-                    document.getElementById('current-time').textContent = 
-                        "Saudi Arabia Time: " + new Date(nowKSA()).toLocaleTimeString("en-SA", { hour12: false });
-                    renderPhones();
-                }, 1000);
-                
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('status').style.display = 'block';
-                document.getElementById('phones-container').style.display = 'block';
-                
-                // Add reset button
-                const resetBtn = document.createElement('button');
-                resetBtn.textContent = 'Reset All';
-                resetBtn.className = 'phone-button locked';
-                resetBtn.style.display = 'block';
-                resetBtn.style.margin = '20px auto';
-                resetBtn.style.padding = '15px 30px';
-                resetBtn.onclick = resetAll;
-                document.querySelector('.container').appendChild(resetBtn);
-                
-            } catch (error) {
-                console.error('Failed to initialize app:', error);
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('error').style.display = 'block';
+        // Initialize application
+        function init() {
+            initializeStates();
+            
+            // Try to load saved data
+            if (!loadFromLocalStorage()) {
+                showStatus('Starting fresh - no saved data found', 'success');
             }
+            
+            createPhoneUI();
+            updateDisplay();
+            
+            // Update display every second
+            setInterval(updateDisplay, 1000);
         }
 
-        // Initialize the app when page loads
-        window.addEventListener('load', initializeApp);
+        // Start the application
+        init();
     </script>
 </body>
 </html>
